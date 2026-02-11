@@ -1,7 +1,14 @@
-"""Forward WSL localhost ports to Docker container for Playwright/browser access."""
-import socket, threading, sys
+"""Forward WSL localhost ports to Docker container for Playwright/browser access.
 
-CONTAINER_IP = "172.17.0.2"
+Usage:
+  python3 port-forward.py                          # uses default 172.17.0.2
+  CONTAINER_IP=172.17.0.3 python3 port-forward.py  # custom container IP
+
+Find your container IP with: docker inspect <id> | grep IPAddress
+"""
+import os, socket, threading, sys
+
+CONTAINER_IP = os.environ.get("CONTAINER_IP", "172.17.0.2")
 PORTS = [5173, 4943]  # Vite + dfx replica
 
 def forward(src, dst):
