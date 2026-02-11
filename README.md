@@ -106,6 +106,134 @@ src/
 - **Modify roles**: Edit `src/backend/authorization/access-control.mo` to change permission levels
 - **Environment variables**: Vite exposes vars prefixed with `CANISTER_`, `DFX_`, or `DEV_` via `import.meta.env`
 
+## Playwright MCP for Automated Testing & Development
+
+This template is designed for an AI-assisted development workflow using [Claude Code](https://claude.ai/claude-code) with the [Playwright MCP](https://github.com/anthropics/mcp-playwright) server. Playwright MCP gives Claude Code direct browser control — it can navigate pages, fill forms, click buttons, take screenshots, and inspect console output, enabling fully autonomous testing and development cycles.
+
+### Setup
+
+Add the Playwright MCP server to Claude Code:
+
+```bash
+claude mcp add playwright npx playwright-mcp@latest
+```
+
+This registers Playwright as an MCP tool. Claude Code can then use `init-browser`, `get-screenshot`, `execute-code`, and other Playwright tools directly.
+
+### Port Forwarding (Docker/WSL setup)
+
+When running the dev container in Docker on WSL, the Vite dev server (port 5173) and dfx replica (port 4943) are inside the container and not directly accessible from the WSL host where Playwright runs. Use the included port forwarder:
+
+```bash
+# Find your container IP
+docker inspect <container_id> | grep IPAddress
+
+# Update CONTAINER_IP in port-forward.py if needed, then run:
+python3 port-forward.py &
+```
+
+This forwards `localhost:5173` and `localhost:4943` from the WSL host to the Docker container, allowing Playwright to reach the app at `http://localhost:5173`.
+
+If using VS Code Dev Containers with automatic port forwarding, or running dfx natively (not in Docker), you can skip this step.
+
+### How It Works
+
+With the dev server running and Playwright MCP configured, Claude Code can:
+
+**Navigate and screenshot:**
+```
+# Claude Code uses these MCP tools automatically:
+init-browser → open http://localhost:5173
+get-screenshot → capture current page state
+```
+
+**Interact with the app:**
+```javascript
+// Claude Code runs Playwright code via execute-code tool:
+async function run(page) {
+  await page.fill('input[placeholder="Enter your name"]', 'Test User');
+  await page.click('button:has-text("Create Profile")');
+  await page.waitForTimeout(3000);
+}
+```
+
+**Capture errors and console output:**
+```javascript
+async function run(page) {
+  const errors = [];
+  const logs = [];
+  page.on('console', msg => logs.push(`[${msg.type()}] ${msg.text()}`));
+  page.on('pageerror', err => errors.push(err.message));
+
+  await page.goto('http://localhost:5173');
+  await page.waitForTimeout(5000);
+
+  return { errors, logs };
+}
+```
+
+**Multi-user testing with parallel browser contexts:**
+```javascript
+async function run(page) {
+  // Admin user (seed 0) is already on the current page
+  const adminText = await page.textContent('body');
+
+  // Create a second browser context for a different user
+  const browser = page.context().browser();
+  const newContext = await browser.newContext();
+  const page2 = await newContext.newPage();
+
+  // Navigate as a different user (seed 1 = non-admin)
+  await page2.goto('http://localhost:5173?dev_seed=1');
+  await page2.waitForTimeout(5000);
+
+  const userText = await page2.textContent('body');
+  return {
+    adminHasUsersTab: adminText.includes('All Users'),
+    userHasUsersTab: userText.includes('All Users'),  // should be false
+  };
+}
+```
+
+### Development Workflow
+
+The typical Claude Code + Playwright workflow:
+
+1. **Make code changes** — Claude Code edits source files
+2. **Copy to container** — `docker cp` updated files into the running container (Vite HMR picks up changes automatically)
+3. **Test with Playwright** — Navigate to the app, take screenshots, verify UI state, check for console errors
+4. **Iterate** — If errors are found, fix and re-test without manual intervention
+5. **Verify source transforms** — Fetch served source to confirm Vite is processing files correctly:
+   ```javascript
+   async function run(page) {
+     const source = await page.evaluate(async () => {
+       const r = await fetch('/src/hooks/useInternetIdentity.tsx');
+       return await r.text();
+     });
+     return source.substring(0, 500);
+   }
+   ```
+
+### Container Management
+
+Claude Code can also manage the Docker container directly:
+
+```bash
+# Check container status
+docker ps --filter name=icp
+
+# Execute commands inside the container
+docker exec <container_id> dfx deploy backend
+docker exec <container_id> dfx canister install backend --mode reinstall  # reset state
+
+# Restart Vite after config changes
+docker exec <container_id> bash -c 'kill $(pgrep -f vite)'
+docker exec -d <container_id> bash -c 'cd /workspaces/*/src/frontend && DEV_BYPASS_II=1 npx vite --host 0.0.0.0 --port 5173 > /tmp/vite.log 2>&1'
+
+# Check Vite logs
+docker exec <container_id> cat /tmp/vite.log
+```
+
 ## Key Technical Details
 
 - **Candid encoding**: Motoko `?Text` maps to TypeScript `[] | [string]` (not `string | undefined`). Use `toCandidProfile()`/`fromCandidProfile()` in `backend.ts` for conversion.
