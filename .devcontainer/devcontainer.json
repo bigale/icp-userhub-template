@@ -1,0 +1,15 @@
+{
+  "name": "ICP RBAC App",
+  "image": "ghcr.io/dfinity/icp-dev-env:18",
+  "forwardPorts": [4943, 5173],
+  "portsAttributes": {
+    "4943": { "label": "dfx", "onAutoForward": "ignore" },
+    "5173": { "label": "vite", "onAutoForward": "openBrowser" }
+  },
+  "postCreateCommand": "npm install",
+  "customizations": {
+    "vscode": {
+      "extensions": ["dfinity-foundation.vscode-motoko", "ms-python.python"]
+    }
+  }
+}

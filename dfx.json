@@ -1,0 +1,24 @@
+{
+  "canisters": {
+    "internet_identity": {
+      "type": "pull",
+      "id": "rdmx6-jaaaa-aaaaa-aaadq-cai"
+    },
+    "backend": {
+      "main": "src/backend/main.mo",
+      "type": "motoko",
+      "declarations": {
+        "output": "src/frontend/src/declarations/backend"
+      }
+    },
+    "frontend": {
+      "dependencies": ["backend", "internet_identity"],
+      "frontend": {
+        "entrypoint": "src/frontend/index.html"
+      },
+      "source": ["src/frontend/dist"],
+      "type": "assets"
+    }
+  },
+  "output_env_file": ".env"
+}

@@ -1,0 +1,8 @@
+node_modules/
+.dfx/
+dist/
+.env
+src/declarations/
+src/frontend/src/declarations/
+package-lock.json
+.mcp.json

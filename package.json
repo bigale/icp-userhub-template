@@ -1,0 +1,11 @@
+{
+  "name": "icp-rbac-app",
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "prebuild": "npm run prebuild --workspaces --if-present",
+    "dev": "npm run dev --workspaces --if-present",
+    "generate": "dfx generate backend"
+  },
+  "type": "module",
+  "workspaces": ["src/frontend"]
+}
