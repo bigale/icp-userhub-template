@@ -2,6 +2,7 @@ import { UserProfile, UserRole } from '../backend';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProfileTab from '../components/ProfileTab';
 import UsersTab from '../components/UsersTab';
+import SmartClientUsersGrid from '../components/SmartClientUsersGrid';
 import { Shield, User } from 'lucide-react';
 
 interface DashboardProps {
@@ -13,7 +14,7 @@ export default function Dashboard({ userRole, userProfile }: DashboardProps) {
   const isAdmin = userRole != null && "admin" in userRole;
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="mx-auto px-4 py-8">
       <div className="mb-8">
         <div className="flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/60">
@@ -35,9 +36,10 @@ export default function Dashboard({ userRole, userProfile }: DashboardProps) {
       </div>
 
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-2">
+        <TabsList className={`grid w-full max-w-lg ${isAdmin ? "grid-cols-3" : "grid-cols-1"}`}>
           <TabsTrigger value="profile">My Profile</TabsTrigger>
           {isAdmin && <TabsTrigger value="users">All Users</TabsTrigger>}
+          {isAdmin && <TabsTrigger value="users-grid">Users (Grid)</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="profile" className="mt-6">
@@ -47,6 +49,12 @@ export default function Dashboard({ userRole, userProfile }: DashboardProps) {
         {isAdmin && (
           <TabsContent value="users" className="mt-6">
             <UsersTab />
+          </TabsContent>
+        )}
+
+        {isAdmin && (
+          <TabsContent value="users-grid" className="mt-6">
+            <SmartClientUsersGrid />
           </TabsContent>
         )}
       </Tabs>

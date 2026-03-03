@@ -2,6 +2,52 @@
 @tailwind components;
 @tailwind utilities;
 
+/* SmartClient skin overrides — match shadcn/ui design */
+.listGrid {
+    border: none !important;
+}
+
+.headerBar {
+    background-color: oklch(0.96 0.01 264) !important;
+    border-bottom: 1px solid oklch(0.92 0.01 264) !important;
+}
+
+.headerButton,
+.headerButton:hover {
+    color: oklch(0.15 0 0) !important;
+    font-weight: 500 !important;
+}
+
+.headerButton:hover {
+    background-color: oklch(0.92 0.03 264) !important;
+}
+
+.gridBody {
+    background-color: #ffffff !important;
+}
+
+.cellOver,
+.cellOverDark {
+    background-color: oklch(0.97 0.02 264) !important;
+}
+
+.cellSelected,
+.cellSelectedDark {
+    background-color: oklch(0.55 0.22 264) !important;
+    color: oklch(0.99 0 0) !important;
+}
+
+.cellSelectedOver,
+.cellSelectedOverDark {
+    background-color: oklch(0.50 0.20 264) !important;
+    color: oklch(0.99 0 0) !important;
+}
+
+/* Filter editor row */
+.recordEditorCell {
+    background-color: oklch(0.98 0.005 264) !important;
+}
+
 @layer base {
     :root {
         --radius: 0.625rem;
@@ -74,7 +120,7 @@
         --sidebar-ring: 0.65 0.22 264;
     }
 
-    * {
+    *:not([class*="scCanvas"]):not([eventproxy]) {
         @apply border-border;
     }
     body {

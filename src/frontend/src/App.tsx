@@ -43,7 +43,7 @@ export default function App() {
           <Header />
           <main className="flex-1">
             {!isAuthenticated ? (
-              <div className="container mx-auto flex min-h-[calc(100vh-8rem)] items-center justify-center px-4">
+              <div className="mx-auto flex min-h-[calc(100vh-8rem)] items-center justify-center px-4">
                 <div className="text-center">
                   <h1 className="mb-4 text-4xl font-bold tracking-tight">Welcome</h1>
                   <p className="mb-8 text-lg text-muted-foreground">
@@ -54,7 +54,7 @@ export default function App() {
             ) : initialized ? (
               <AuthenticatedContent />
             ) : (
-              <div className="container mx-auto px-4 py-8 text-center text-muted-foreground">
+              <div className="mx-auto px-4 py-8 text-center text-muted-foreground">
                 Failed to initialize. Please refresh and try again.
               </div>
             )}

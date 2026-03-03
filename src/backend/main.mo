@@ -3,9 +3,9 @@ import Principal "mo:base/Principal";
 import OrderedMap "mo:base/OrderedMap";
 import Debug "mo:base/Debug";
 import Iter "mo:base/Iter";
-actor {
+persistent actor {
   // Initialize the user system state
-  let accessControlState = AccessControl.initState();
+  transient let accessControlState = AccessControl.initState();
 
   // Initialize auth (first caller becomes admin, others become users)
   public shared ({ caller }) func initializeAccessControl() : async () {
@@ -31,8 +31,8 @@ actor {
     bio : ?Text;
   };
 
-  let principalMap = OrderedMap.Make<Principal>(Principal.compare);
-  var userProfiles = principalMap.empty<UserProfile>();
+  transient let principalMap = OrderedMap.Make<Principal>(Principal.compare);
+  transient var userProfiles = principalMap.empty<UserProfile>();
 
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {

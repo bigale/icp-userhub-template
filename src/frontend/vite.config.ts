@@ -5,6 +5,7 @@ import path from "path";
 export default defineConfig({
   define: {
     global: "globalThis",
+    "process.env": {},
   },
   plugins: [react()],
   envDir: path.resolve(__dirname, "../.."),
@@ -21,6 +22,12 @@ export default defineConfig({
         target: "http://127.0.0.1:4943",
         changeOrigin: true,
       },
+    },
+    fs: {
+      allow: [
+        path.resolve(__dirname),
+        "/home/bigale/repos/SmartClient",
+      ],
     },
   },
 });

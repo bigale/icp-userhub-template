@@ -6,3 +6,6 @@ src/declarations/
 src/frontend/src/declarations/
 package-lock.json
 .mcp.json
+
+# SmartClient runtime (symlinked, ~260MB)
+src/frontend/public/isomorphic
