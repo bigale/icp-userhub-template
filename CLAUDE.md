@@ -106,11 +106,71 @@ Upgrade: unzip new version, repoint `latest` symlink. The `public/isomorphic` sy
 - `useSmartClientWidget(containerRef, factory, deps)` — mounts a widget in a React ref div, calls `draw()`, cleans up via `markForDestroy()` on unmount
 - Widgets use `position: "relative"` + `htmlElement` to flow in page layout
 
+### Placement & Resizing Pattern (Two-Ref)
+SmartClient widgets need explicit pixel dimensions — CSS percentages resolve against the viewport, not the container. Use the **two-ref pattern** to separate layout measurement from widget mounting:
+
+1. **Wrapper ref** (`overflow-auto`) — stable scroll container whose width tracks available layout space via `ResizeObserver`. Not affected by grid drag-resize.
+2. **Container ref** (`w-fit min-w-full`) — mounts the widget. Sizes to its content, so it auto-grows when the widget is drag-resized beyond the wrapper width. Scrollbars appear on the wrapper.
+
+```tsx
+<div ref={wrapperRef} className="px-6 pb-6 overflow-auto">
+  <div ref={containerRef} className="w-fit min-w-full rounded-[var(--radius)] border border-border" />
+</div>
+```
+
+- **Width**: measured from wrapper, passed to widget on creation. On layout change (window resize), grid expands to fill new space but never shrinks below a user-dragged width (`availableWidth > grid.getWidth()`).
+- **Height**: set to an initial value (e.g. 400px), then user-controlled via drag. Container auto-sizes to grid height (no fixed height on container).
+- **Drag resize**: `canDragResize: true`, `canDragReposition: false`, `resizeFrom: ["B", "R", "BR"]` enables bottom, right, and corner drag handles. SmartClient handles the drag interaction natively.
+- **Dependency array**: pass `[scReady, widthReady]` to `useSmartClientWidget` so the factory re-runs when SmartClient loads AND when the first non-zero width measurement arrives.
+
+See `SmartClientUsersGrid.tsx` for the full reference implementation.
+
 ### CSS Isolation & Skin Overrides (`src/frontend/src/index.css`)
 - The global `* { border-color }` reset excludes SmartClient elements via `:not([class*="scCanvas"]):not([eventproxy])`
 - SmartClient skin overrides use OKLCH colors from the shadcn theme variables: rounded corners (`0.625rem`), matching border/header/hover colors, purple accent for selected states
 
+### Layout
+- **No `container` class** on layout wrappers (Header, Footer, Dashboard, App.tsx). The Tailwind `container` class caps `max-width` at breakpoints and prevents grids from filling wide viewports. Use `mx-auto px-4` instead for edge padding without width caps.
+
 ### Key Files
 - `src/frontend/src/types/smartclient.d.ts` — Minimal ambient types for `window.isc`
 - `src/frontend/src/hooks/useSmartClient.ts` — React wrapper hooks
-- `src/frontend/src/components/SmartClientUsersGrid.tsx` — Demo ListGrid component
+- `src/frontend/src/components/SmartClientUsersGrid.tsx` — Reference implementation of two-ref placement + drag-resize
+
+## Chrome Extension — `src/extension/`
+
+### Overview
+MV3 Chrome extension that runs the same React + SmartClient UI in a **side panel** (~400px) and **full tab** mode, connecting directly to the ICP backend canister.
+
+### Build & Load
+```bash
+cd src/extension
+npm run build          # Produces dist/ with sidepanel.html, tab.html, service-worker.js
+npm run dev            # Watch mode for development
+```
+Then load `src/extension/dist` as an unpacked extension in `chrome://extensions`.
+
+### Architecture
+- **Code sharing**: Extension imports components/hooks directly from `src/frontend/src/` via `@/` path alias. No code duplication.
+- **Context injection**: Extension provides its own `ExtensionIdentityProvider` and `ExtensionActorProvider` that inject into the same React contexts (`InternetIdentityContext`, `ActorContext`) the frontend hooks export.
+- **SmartClient**: Same `<script>` tag loading as frontend. CSP allows `unsafe-eval` on extension pages (required by SmartClient).
+- **ICP connection**: Direct HTTP to `127.0.0.1:4943` (dev) or `icp-api.io` (prod) — no Vite proxy.
+
+### Auth
+- **Dev**: `DEV_BYPASS_II=1` in `.env` → auto-login with Ed25519 seed identity
+- **Prod**: Tab-redirect II flow → `callback.html` receives delegation → relayed via `chrome.runtime.sendMessage`
+
+### Key Files
+- `src/extension/manifest.json` — MV3 manifest with sidePanel, service_worker, CSP
+- `src/extension/vite.config.ts` — Multi-entry build (sidepanel, tab, service-worker)
+- `src/extension/src/app/ExtensionIdentityProvider.tsx` — Extension-specific II auth
+- `src/extension/src/app/ExtensionActorProvider.tsx` — Direct HTTP agent to ICP
+- `src/extension/src/app/useExtensionMode.ts` — Returns "sidepanel" | "tab"
+- `src/extension/src/background/service-worker.ts` — Panel toggle, context menu, II relay
+- `src/extension/public/callback.html` — Internet Identity delegation receiver
+
+### Symlink
+```
+src/extension/public/isomorphic  →  /home/bigale/repos/SmartClient/latest/smartclientRuntime/isomorphic
+```
+Same chain as frontend. Entry is in `.gitignore`.

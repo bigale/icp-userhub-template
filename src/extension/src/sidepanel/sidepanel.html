@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ICP UserHub</title>
+
+    <!-- SmartClient: base path + disable Simple Names to avoid global collisions -->
+    <script>
+      window.isomorphicDir = "/isomorphic/";
+      window.isc_useSimpleNames = false;
+    </script>
+
+    <!-- SmartClient: core modules (order is critical) -->
+    <script src="/isomorphic/system/modules/ISC_Core.js"></script>
+    <script src="/isomorphic/system/modules/ISC_Foundation.js"></script>
+    <script src="/isomorphic/system/modules/ISC_Containers.js"></script>
+    <script src="/isomorphic/system/modules/ISC_Grids.js"></script>
+    <script src="/isomorphic/system/modules/ISC_Forms.js"></script>
+    <script src="/isomorphic/system/modules/ISC_DataBinding.js"></script>
+
+    <!-- SmartClient: skin (must be after all modules) -->
+    <script src="/isomorphic/skins/Stratus/load_skin.js"></script>
+
+    <!-- Disable autoDraw so widgets only render where React tells them to -->
+    <script>isc.setAutoDraw(false);</script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./main.tsx"></script>
+  </body>
+</html>

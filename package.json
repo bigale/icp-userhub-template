@@ -7,5 +7,5 @@
     "generate": "dfx generate backend"
   },
   "type": "module",
-  "workspaces": ["src/frontend"]
+  "workspaces": ["src/frontend", "src/extension"]
 }

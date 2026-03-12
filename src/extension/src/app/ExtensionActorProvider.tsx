@@ -1,31 +1,28 @@
-import { createContext, useContext, useState, useEffect, ReactNode, createElement } from "react";
+import { useState, useEffect, ReactNode, createElement } from "react";
 import { Actor, HttpAgent } from "@dfinity/agent";
-import { useInternetIdentity } from "./useInternetIdentity";
+import { useInternetIdentity } from "@/hooks/useInternetIdentity";
+import { ActorContext } from "@/hooks/useActor";
 
 // @ts-ignore - declarations generated at deploy time
-import { idlFactory } from "../declarations/backend";
+import { idlFactory } from "@/declarations/backend";
 
+// Canister IDs baked in at build time by vite.config.ts
 const CANISTER_ID =
   import.meta.env.CANISTER_ID_BACKEND || import.meta.env.BACKEND_CANISTER_ID || "";
 
-const HOST =
-  import.meta.env.DFX_NETWORK === "ic"
-    ? "https://icp-api.io"
-    : "http://127.0.0.1:4943";
+const DFX_NETWORK = import.meta.env.DFX_NETWORK || "";
 
-interface ActorContextValue {
-  actor: any;
-  isFetching: boolean;
-}
+// Extension connects directly — no Vite proxy
+const HOST = DFX_NETWORK === "ic"
+  ? "https://icp-api.io"
+  : "http://127.0.0.1:4943";
 
-const ActorContext = createContext<ActorContextValue>({
-  actor: null,
-  isFetching: true,
-});
-
-export { ActorContext };
-
-export function ActorProvider({ children }: { children: ReactNode }) {
+/**
+ * Extension-specific actor provider.
+ * Same logic as frontend ActorProvider but uses direct HTTP host
+ * instead of relying on Vite's /api proxy.
+ */
+export function ExtensionActorProvider({ children }: { children: ReactNode }) {
   const { identity } = useInternetIdentity();
   const [actor, setActor] = useState<any>(null);
   const [isFetching, setIsFetching] = useState(true);
@@ -43,7 +40,7 @@ export function ActorProvider({ children }: { children: ReactNode }) {
       setIsFetching(true);
       const agent = await HttpAgent.create({ identity, host: HOST });
 
-      if (import.meta.env.DFX_NETWORK !== "ic") {
+      if (DFX_NETWORK !== "ic") {
         await agent.fetchRootKey();
       }
 
@@ -63,8 +60,4 @@ export function ActorProvider({ children }: { children: ReactNode }) {
   }, [identity]);
 
   return createElement(ActorContext.Provider, { value: { actor, isFetching } }, children);
-}
-
-export function useActor(): ActorContextValue {
-  return useContext(ActorContext);
 }

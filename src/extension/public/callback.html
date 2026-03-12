@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>ICP UserHub — Authentication</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        margin: 0;
+        background: #fafafa;
+        color: #333;
+      }
+      .message {
+        text-align: center;
+        padding: 2rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="message">
+      <h2>Authenticating...</h2>
+      <p id="status">Processing Internet Identity delegation.</p>
+    </div>
+    <script>
+      (function () {
+        const statusEl = document.getElementById("status");
+
+        // Internet Identity returns delegation data in the URL hash
+        const hash = window.location.hash;
+        if (!hash || hash.length < 2) {
+          statusEl.textContent = "No delegation data received. Please try again.";
+          return;
+        }
+
+        try {
+          // Extract delegation from hash
+          const params = new URLSearchParams(hash.substring(1));
+          const delegation = params.get("delegation");
+
+          if (!delegation) {
+            statusEl.textContent = "No delegation found in response. Please try again.";
+            return;
+          }
+
+          // Send delegation to the extension via chrome.runtime.sendMessage
+          chrome.runtime.sendMessage(
+            {
+              type: "II_DELEGATION",
+              delegation: delegation,
+            },
+            function (response) {
+              if (chrome.runtime.lastError) {
+                statusEl.textContent = "Failed to send delegation to extension. You can close this tab.";
+                console.error(chrome.runtime.lastError);
+              } else {
+                statusEl.textContent = "Authentication successful! You can close this tab.";
+                // Auto-close after a short delay
+                setTimeout(() => window.close(), 1500);
+              }
+            }
+          );
+        } catch (e) {
+          statusEl.textContent = "Error processing delegation: " + e.message;
+          console.error(e);
+        }
+      })();
+    </script>
+  </body>
+</html>

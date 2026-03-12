@@ -116,6 +116,8 @@ export function InternetIdentityProvider({ children }: { children: ReactNode }) 
   );
 }
 
+export { InternetIdentityContext };
+
 export function useInternetIdentity(): InternetIdentityState {
   const context = useContext(InternetIdentityContext);
   if (!context) {

@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "ICP UserHub",
+  "version": "0.1.0",
+  "description": "ICP UserHub — manage users and roles on the Internet Computer",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "action": {
+    "default_title": "Open ICP UserHub"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "background": {
+    "service_worker": "service-worker.js"
+  },
+  "permissions": [
+    "sidePanel",
+    "contextMenus",
+    "storage"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1:4943/*",
+    "https://icp-api.io/*",
+    "https://identity.ic0.app/*"
+  ],
+  "sandbox": {
+    "pages": ["sandbox.html"]
+  }
+}

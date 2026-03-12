@@ -1,0 +1,11 @@
+/* Import the frontend's full CSS (Tailwind + SmartClient overrides + theme vars) */
+@import "../../../frontend/src/index.css";
+
+/* Sidebar-mode overrides */
+body.extension-sidepanel {
+  min-width: 320px;
+}
+
+body.extension-sidepanel .header-logo-text {
+  display: none;
+}

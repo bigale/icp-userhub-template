@@ -9,3 +9,7 @@ package-lock.json
 
 # SmartClient runtime (symlinked, ~260MB)
 src/frontend/public/isomorphic
+src/extension/public/isomorphic
+
+# Extension build output
+src/extension/dist
